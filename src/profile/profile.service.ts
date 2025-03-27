@@ -88,4 +88,10 @@ export class ProfileService {
     user.avatar = file.filename;
     return this.userRepository.save(user);
   }
+
+  async getAllProfiles(): Promise<User[]> {
+    return this.userRepository.find({
+      select: ['id', 'username', 'email', 'role', 'displayName', 'bio', 'avatar', 'createdAt', 'updatedAt'],
+    });
+  }
 }
