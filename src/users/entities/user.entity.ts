@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   BeforeInsert,
+  BeforeUpdate,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import * as bcrypt from 'bcryptjs';
@@ -36,6 +37,41 @@ export class User {
   })
   @Column()
   password: string;
+
+  @ApiProperty({
+    example: false,
+    description: 'Whether the email has been verified',
+  })
+  @Column({ default: false })
+  isEmailVerified: boolean;
+
+  @ApiProperty({
+    example: 'abc123xyz789',
+    description: 'Email verification token',
+  })
+  @Column({ nullable: true })
+  emailVerificationToken: string;
+
+  @ApiProperty({
+    example: '2025-03-27T12:00:00.000Z',
+    description: 'Email verification token expiry date',
+  })
+  @Column({ nullable: true })
+  emailVerificationTokenExpires: Date;
+
+  @ApiProperty({
+    example: 'def456ghi012',
+    description: 'Password reset token',
+  })
+  @Column({ nullable: true })
+  passwordResetToken: string;
+
+  @ApiProperty({
+    example: '2025-03-27T12:00:00.000Z',
+    description: 'Password reset token expiry date',
+  })
+  @Column({ nullable: true })
+  passwordResetTokenExpires: Date;
 
   @ApiProperty({
     example: '2025-03-27T12:00:00.000Z',
@@ -77,7 +113,14 @@ export class User {
   bio: string;
 
   @BeforeInsert()
+  @BeforeUpdate()
   async hashPassword() {
-    this.password = await bcrypt.hash(this.password, 10);
+    if (this.password) {
+      this.password = await bcrypt.hash(this.password, 10);
+    }
+  }
+
+  async validatePassword(password: string): Promise<boolean> {
+    return bcrypt.compare(password, this.password);
   }
 }

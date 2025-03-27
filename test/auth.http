@@ -1,0 +1,242 @@
+# Authentication Test Suite
+@baseUrl = http://localhost:3005
+@authToken = your_jwt_token_here
+
+### 1. User Registration Tests ###
+
+# Success: Register a new user
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "email": "test@example.com",
+  "password": "StrongP@ss123"
+}
+
+# Error: Register with existing email
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "newuser",
+  "email": "test@example.com",
+  "password": "StrongP@ss123"
+}
+
+# Error: Register with invalid email
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser2",
+  "email": "invalid-email",
+  "password": "StrongP@ss123"
+}
+
+# Error: Register with weak password
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser3",
+  "email": "test3@example.com",
+  "password": "weak"
+}
+
+### 2. Email Verification Tests ###
+
+# Success: Verify email with valid token
+GET {{baseUrl}}/auth/verify-email?token=your_verification_token_here
+
+# Error: Verify with invalid token
+GET {{baseUrl}}/auth/verify-email?token=invalid_token
+
+# Error: Verify with expired token
+GET {{baseUrl}}/auth/verify-email?token=expired_token
+
+# Success: Resend verification email
+POST {{baseUrl}}/auth/resend-verification
+Content-Type: application/json
+
+{
+  "email": "test@example.com"
+}
+
+# Error: Resend verification for non-existent email
+POST {{baseUrl}}/auth/resend-verification
+Content-Type: application/json
+
+{
+  "email": "nonexistent@example.com"
+}
+
+# Error: Resend verification for already verified email
+POST {{baseUrl}}/auth/resend-verification
+Content-Type: application/json
+
+{
+  "email": "verified@example.com"
+}
+
+### 3. Login Tests ###
+
+# Success: Login with correct credentials
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "StrongP@ss123"
+}
+
+### Store the auth token from login response
+@authToken = {{login.response.body.accessToken}}
+
+# Error: Login with incorrect password
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "WrongPassword123"
+}
+
+# Error: Login with non-existent email
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "nonexistent@example.com",
+  "password": "StrongP@ss123"
+}
+
+# Error: Login with unverified email
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "unverified@example.com",
+  "password": "StrongP@ss123"
+}
+
+### 4. Password Management Tests ###
+
+# Success: Change password with valid current password
+POST {{baseUrl}}/auth/change-password
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "StrongP@ss123",
+  "newPassword": "NewStrongP@ss456"
+}
+
+# Error: Change password with incorrect current password
+POST {{baseUrl}}/auth/change-password
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "WrongPassword123",
+  "newPassword": "NewStrongP@ss456"
+}
+
+# Error: Change password with weak new password
+POST {{baseUrl}}/auth/change-password
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "StrongP@ss123",
+  "newPassword": "weak"
+}
+
+# Success: Request password reset
+POST {{baseUrl}}/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "test@example.com"
+}
+
+# Success: Request password reset for non-existent email (should return 200 for security)
+POST {{baseUrl}}/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "nonexistent@example.com"
+}
+
+# Success: Reset password with valid token
+POST {{baseUrl}}/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "valid_reset_token",
+  "newPassword": "NewStrongP@ss789"
+}
+
+# Error: Reset password with invalid token
+POST {{baseUrl}}/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "invalid_token",
+  "newPassword": "NewStrongP@ss789"
+}
+
+# Error: Reset password with expired token
+POST {{baseUrl}}/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "expired_token",
+  "newPassword": "NewStrongP@ss789"
+}
+
+# Error: Reset password with weak password
+POST {{baseUrl}}/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "valid_reset_token",
+  "newPassword": "weak"
+}
+
+### 5. Protected Route Tests ###
+
+# Success: Get user profile with valid token
+GET {{baseUrl}}/users/profile
+Authorization: Bearer {{authToken}}
+
+# Error: Get user profile with invalid token
+GET {{baseUrl}}/users/profile
+Authorization: Bearer invalid_token
+
+# Error: Get user profile with expired token
+GET {{baseUrl}}/users/profile
+Authorization: Bearer expired_token
+
+# Success: Update user profile
+PUT {{baseUrl}}/users/profile
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "displayName": "John Doe",
+  "bio": "Full-stack developer and tech enthusiast",
+  "avatar": "https://example.com/avatar.jpg"
+}
+
+# Error: Update profile with invalid data
+PUT {{baseUrl}}/users/profile
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "displayName": "",
+  "bio": "A".repeat(501),
+  "avatar": "not-a-url"
+}
