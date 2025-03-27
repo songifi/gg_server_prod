@@ -6,10 +6,12 @@ import {
   UpdateDateColumn,
   BeforeInsert,
   BeforeUpdate,
+  OneToMany,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import * as bcrypt from 'bcryptjs';
 import { UserRole } from '../enums/user-role.enum';
+import { Wallet } from '../../wallet/entities/wallet.entity';
 
 @Entity('users')
 export class User {
@@ -143,6 +145,9 @@ export class User {
   })
   @Column({ type: 'timestamp', nullable: true })
   refreshTokenExpires: Date;
+
+  @OneToMany(() => Wallet, (wallet) => wallet.user)
+  wallets: Wallet[];
 
   @BeforeInsert()
   @BeforeUpdate()
