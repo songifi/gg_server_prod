@@ -17,6 +17,15 @@ describe('MessageService', () => {
     findOneMessage: jest.fn(),
     updateMessage: jest.fn(),
     removeMessage: jest.fn(),
+    createQueryBuilder: jest.fn(() => ({
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      take: jest.fn().mockReturnThis(),
+      getManyAndCount: jest.fn(),
+    })),
+    find: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -148,7 +157,6 @@ describe('MessageService', () => {
   describe('remove', () => {
     it('should remove a message by ID', async () => {
       const messageId = '1';
-
       mockMessageRepository.removeMessage.mockResolvedValue(undefined);
 
       const result = await messageService.remove(messageId);
@@ -157,6 +165,52 @@ describe('MessageService', () => {
       expect(mockMessageRepository.removeMessage).toHaveBeenCalledWith(
         messageId,
       );
+    });
+  });
+
+  describe('getMessageHistory', () => {
+    it('should return paginated message history', async () => {
+      const senderId = 'user123';
+      const conversationId = 'conv456';
+      const page = 1;
+      const limit = 10;
+      const messages = [{ id: '1', content: 'Hello' }];
+      const total = 1;
+      mockMessageRepository
+        .createQueryBuilder()
+        .getManyAndCount.mockResolvedValue([messages, total]);
+
+      const result = await messageService.getMessageHistory(
+        senderId,
+        conversationId,
+        page,
+        limit,
+      );
+
+      expect(result).toEqual({ messages, total });
+    });
+  });
+
+  describe('searchMessages', () => {
+    it('should return filtered messages based on search query', async () => {
+      const query = 'Hello';
+      const senderId = 'user123';
+      const conversationId = 'conv456';
+      const messages = [{ id: '1', content: 'Hello' }];
+
+      mockMessageRepository.find.mockResolvedValue(messages);
+
+      const result = await messageService.searchMessages(
+        query,
+        senderId,
+        conversationId,
+      );
+
+      expect(result).toEqual(messages);
+      expect(mockMessageRepository.find).toHaveBeenCalledWith({
+        where: { senderId, conversationId, content: expect.any(Object) },
+        order: { timestamp: 'DESC' },
+      });
     });
   });
 });
