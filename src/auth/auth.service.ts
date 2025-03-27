@@ -5,6 +5,7 @@ import { UsersService } from '../users/users.service';
 import { EmailService } from '../email/email.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { RefreshTokenDto, TokenResponseDto } from './dto/refresh-token.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { User } from '../users/entities/user.entity';
 import { UserResponse } from '../shared/types/user.types';
@@ -61,7 +62,7 @@ export class AuthService {
     return result;
   }
 
-  async login(loginDto: LoginDto): Promise<{ accessToken: string }> {
+  async login(loginDto: LoginDto): Promise<TokenResponseDto> {
     const user = await this.usersService.findByEmail(loginDto.email);
     
     if (!user) {
@@ -77,18 +78,55 @@ export class AuthService {
       throw new UnauthorizedException('Please verify your email before logging in');
     }
 
+    return this.generateTokens(user);
+  }
+
+  async refreshToken(refreshTokenDto: RefreshTokenDto): Promise<TokenResponseDto> {
+    const { refreshToken } = refreshTokenDto;
+    
+    // Find user by refresh token
+    const user = await this.usersService.findByRefreshToken(refreshToken);
+    if (!user) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    // Validate refresh token
+    const isValid = await user.validateRefreshToken(refreshToken);
+    if (!isValid) {
+      throw new UnauthorizedException('Refresh token expired');
+    }
+
+    // Generate new tokens
+    return this.generateTokens(user);
+  }
+
+  private async generateTokens(user: User): Promise<TokenResponseDto> {
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
       isEmailVerified: user.isEmailVerified,
     };
 
+    // Generate access token
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: this.configService.get<string>('JWT_SECRET'),
-      expiresIn: this.configService.get<string>('JWT_EXPIRES_IN', '1h'),
+      expiresIn: this.configService.get<string>('JWT_EXPIRES_IN', '15m'),
     });
 
-    return { accessToken };
+    // Generate refresh token
+    const refreshToken = uuidv4();
+    const refreshTokenExpires = new Date();
+    refreshTokenExpires.setDate(refreshTokenExpires.getDate() + 7); // 7 days
+
+    // Save refresh token to user
+    user.refreshToken = refreshToken;
+    user.refreshTokenExpires = refreshTokenExpires;
+    await this.usersService.save(user);
+
+    return {
+      accessToken,
+      refreshToken,
+    };
   }
 
   async verifyEmail(token: string): Promise<UserResponse> {
