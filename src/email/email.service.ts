@@ -10,10 +10,12 @@ export class EmailService {
 
   constructor(private readonly configService: ConfigService) {
     this.isDevelopment = this.configService.get('NODE_ENV') === 'development';
-    
+
     if (this.isDevelopment) {
       // In development, log emails instead of sending them
-      this.logger.log('Running in development mode - emails will be logged instead of sent');
+      this.logger.log(
+        'Running in development mode - emails will be logged instead of sent',
+      );
       this.transporter = {
         sendMail: async (options: nodemailer.SendMailOptions) => {
           this.logger.debug('Email would have been sent:', {
@@ -38,9 +40,13 @@ export class EmailService {
     }
   }
 
-  async sendVerificationEmail(to: string, token: string, username: string): Promise<void> {
+  async sendVerificationEmail(
+    to: string,
+    token: string,
+    username: string,
+  ): Promise<void> {
     const verificationUrl = `${this.configService.get<string>('APP_URL')}/auth/verify-email?token=${token}`;
-    
+
     await this.sendEmail({
       to,
       subject: 'Verify Your Email',
@@ -55,9 +61,13 @@ export class EmailService {
     });
   }
 
-  async sendPasswordResetEmail(to: string, token: string, username: string): Promise<void> {
+  async sendPasswordResetEmail(
+    to: string,
+    token: string,
+    username: string,
+  ): Promise<void> {
     const resetUrl = `${this.configService.get<string>('APP_URL')}/auth/reset-password?token=${token}`;
-    
+
     await this.sendEmail({
       to,
       subject: 'Reset Your Password',
@@ -84,7 +94,9 @@ export class EmailService {
       this.logger.error(`Failed to send email to ${options.to}:`, error);
       if (this.isDevelopment) {
         // In development, don't throw the error
-        this.logger.warn('Email sending failed, but continuing in development mode');
+        this.logger.warn(
+          'Email sending failed, but continuing in development mode',
+        );
       } else {
         throw error;
       }

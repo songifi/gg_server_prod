@@ -25,7 +25,10 @@ export class UsersService {
     return this.userRepository.find();
   }
 
-  async findByEmailOrUsername(email: string, username: string): Promise<User | null> {
+  async findByEmailOrUsername(
+    email: string,
+    username: string,
+  ): Promise<User | null> {
     return this.userRepository.findOne({
       where: [{ email }, { username }],
     });
@@ -45,7 +48,7 @@ export class UsersService {
 
   async findByPasswordResetToken(token: string): Promise<User | null> {
     const users = await this.findAllUsers();
-    return users.find(user => user.passwordResetToken === token);
+    return users.find((user) => user.passwordResetToken === token);
   }
 
   async findByRefreshToken(refreshToken: string): Promise<User | null> {

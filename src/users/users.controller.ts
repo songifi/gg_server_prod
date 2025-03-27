@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Controller,
   Post,
@@ -52,7 +53,12 @@ export class UsersController {
     type: User,
   })
   async getProfile(@CurrentUser() user: User): Promise<UserResponse> {
-    const { password, emailVerificationToken, emailVerificationTokenExpires, ...result } = user;
+    const {
+      password,
+      emailVerificationToken,
+      emailVerificationTokenExpires,
+      ...result
+    } = user;
     return result;
   }
 
@@ -75,7 +81,12 @@ export class UsersController {
       ...updateProfileDto,
     });
 
-    const { password, emailVerificationToken, emailVerificationTokenExpires, ...result } = updatedUser;
+    const {
+      password,
+      emailVerificationToken,
+      emailVerificationTokenExpires,
+      ...result
+    } = updatedUser;
     return result;
   }
 
@@ -91,7 +102,12 @@ export class UsersController {
     if (!user) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
-    const { password, emailVerificationToken, emailVerificationTokenExpires, ...result } = user;
+    const {
+      password,
+      emailVerificationToken,
+      emailVerificationTokenExpires,
+      ...result
+    } = user;
     return result;
   }
 
@@ -120,7 +136,12 @@ export class UsersController {
       ...updateUserDto,
     });
 
-    const { password, emailVerificationToken, emailVerificationTokenExpires, ...result } = updatedUser;
+    const {
+      password,
+      emailVerificationToken,
+      emailVerificationTokenExpires,
+      ...result
+    } = updatedUser;
     return result;
   }
 
@@ -131,8 +152,13 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'List of users', type: [User] })
   async findAll(): Promise<UserResponse[]> {
     const users = await this.usersService.findAllUsers();
-    return users.map(user => {
-      const { password, emailVerificationToken, emailVerificationTokenExpires, ...result } = user;
+    return users.map((user) => {
+      const {
+        password,
+        emailVerificationToken,
+        emailVerificationTokenExpires,
+        ...result
+      } = user;
       return result;
     });
   }
