@@ -7,7 +7,7 @@ import { MessageService } from './message.service';
 import { Message } from './entities/message.entity';
 import { MessageRepository } from './repository/message.repository';
 import { MessageGateway } from './message.gateway';
-import { MessageReadReceipt } from './entities/message-read-receipt.entity';
+import { MessageReadReceipt } from '../read-receipt/dto/message-read-receipt.entity';
 
 @Module({
   imports: [

@@ -3,8 +3,10 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { MessageType } from '../enum/message-type.enum';
+import { ReadReceipt } from 'src/read-receipt/entities/read-receipt.entity';
 
 @Entity('messages')
 export class Message {
@@ -28,4 +30,7 @@ export class Message {
 
   @CreateDateColumn()
   timestamp: Date;
+
+  @OneToMany(() => ReadReceipt, (readReceipt) => readReceipt.message)
+  readReceipts: ReadReceipt[];
 }
