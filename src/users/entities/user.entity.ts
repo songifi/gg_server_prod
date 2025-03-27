@@ -12,6 +12,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import * as bcrypt from 'bcryptjs';
 import { UserRole } from '../enums/user-role.enum';
 import { Wallet } from '../../wallet/entities/wallet.entity';
+import { ReadReceipt } from 'src/read-receipt/entities/read-receipt.entity';
 
 @Entity('users')
 export class User {
@@ -165,4 +166,7 @@ export class User {
   async validateRefreshToken(token: string): Promise<boolean> {
     return this.refreshToken === token && this.refreshTokenExpires > new Date();
   }
+
+  @OneToMany(() => ReadReceipt, (readReceipt) => readReceipt.user)
+  readReceipts: ReadReceipt[];
 }

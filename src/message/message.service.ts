@@ -110,7 +110,10 @@ export class MessageService {
     return await this.messageRepository.findUserConversations(userId);
   }
 
-  async markAsRead(messageId: string, userId: string): Promise<MessageResponseDto | null> {
+  async markAsRead(
+    messageId: string,
+    userId: string,
+  ): Promise<MessageResponseDto | null> {
     return await this.messageRepository.markMessageAsRead(messageId, userId);
   }
 }

@@ -2,7 +2,7 @@ import { EntityRepository, Repository } from 'typeorm';
 import { Logger } from '@nestjs/common';
 import { Message } from '../entities/message.entity';
 import { MessageType } from '../enum/message-type.enum';
-import { MessageReadReceipt } from '../entities/message-read-receipt.entity';
+import { MessageReadReceipt } from '../../read-receipt/dto/message-read-receipt.entity';
 
 @EntityRepository(Message)
 export class MessageRepository extends Repository<Message> {
@@ -26,7 +26,10 @@ export class MessageRepository extends Repository<Message> {
       this.logger.log(`Message created: ${savedMessage.id}`);
       return savedMessage;
     } catch (error) {
-      this.logger.error(`Failed to create message: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to create message: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -37,7 +40,9 @@ export class MessageRepository extends Repository<Message> {
         where: { conversationId },
         order: { timestamp: 'ASC' },
       });
-      this.logger.debug(`Found ${messages.length} messages for conversation ${conversationId}`);
+      this.logger.debug(
+        `Found ${messages.length} messages for conversation ${conversationId}`,
+      );
       return messages;
     } catch (error) {
       this.logger.error(
@@ -56,7 +61,10 @@ export class MessageRepository extends Repository<Message> {
       }
       return message;
     } catch (error) {
-      this.logger.error(`Failed to find message ${id}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to find message ${id}: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -75,7 +83,10 @@ export class MessageRepository extends Repository<Message> {
       this.logger.log(`Message updated: ${id}`);
       return updatedMessage;
     } catch (error) {
-      this.logger.error(`Failed to update message ${id}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to update message ${id}: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -85,7 +96,10 @@ export class MessageRepository extends Repository<Message> {
       await this.delete(id);
       this.logger.log(`Message deleted: ${id}`);
     } catch (error) {
-      this.logger.error(`Failed to delete message ${id}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to delete message ${id}: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -95,7 +109,7 @@ export class MessageRepository extends Repository<Message> {
       const conversations = await this.createQueryBuilder('message')
         .select('DISTINCT message.conversationId', 'id')
         .where('message.senderId = :userId', { userId })
-        .orWhere(qb => {
+        .orWhere((qb) => {
           const subQuery = qb
             .subQuery()
             .select('m.conversationId')
@@ -105,7 +119,9 @@ export class MessageRepository extends Repository<Message> {
           return 'message.conversationId IN ' + subQuery;
         })
         .getRawMany();
-      this.logger.debug(`Found ${conversations.length} conversations for user ${userId}`);
+      this.logger.debug(
+        `Found ${conversations.length} conversations for user ${userId}`,
+      );
       return conversations;
     } catch (error) {
       this.logger.error(
@@ -120,14 +136,16 @@ export class MessageRepository extends Repository<Message> {
     try {
       const message = await this.findOneMessage(messageId);
       if (!message) {
-        this.logger.warn(`Cannot mark non-existent message as read: ${messageId}`);
+        this.logger.warn(
+          `Cannot mark non-existent message as read: ${messageId}`,
+        );
         return null;
       }
 
       const readReceipt = new MessageReadReceipt();
       readReceipt.messageId = messageId;
       readReceipt.userId = userId;
-      
+
       await this.manager.getRepository(MessageReadReceipt).save(readReceipt);
       this.logger.log(`Message ${messageId} marked as read by user ${userId}`);
 
