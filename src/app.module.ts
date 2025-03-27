@@ -8,6 +8,7 @@ import { EmailModule } from './email/email.module';
 import { ProfileModule } from './profile/profile.module';
 import { WalletModule } from './wallet/wallet.module';
 import { ReadReceiptModule } from './read-receipt/read-receipt.module';
+import { ConversationModule } from './conversation/conversation.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { ReadReceiptModule } from './read-receipt/read-receipt.module';
     ProfileModule,
     WalletModule,
     ReadReceiptModule,
+    ConversationModule,
   ],
 })
 export class AppModule {}

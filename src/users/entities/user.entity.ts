@@ -13,6 +13,7 @@ import * as bcrypt from 'bcryptjs';
 import { UserRole } from '../enums/user-role.enum';
 import { Wallet } from '../../wallet/entities/wallet.entity';
 import { ReadReceipt } from 'src/read-receipt/entities/read-receipt.entity';
+import { ConversationParticipant } from 'src/conversation/entities/conversation-participation.entity';
 
 @Entity('users')
 export class User {
@@ -169,4 +170,7 @@ export class User {
 
   @OneToMany(() => ReadReceipt, (readReceipt) => readReceipt.user)
   readReceipts: ReadReceipt[];
+
+  @OneToMany(() => ConversationParticipant, (participant) => participant.user)
+  conversations: ConversationParticipant[];
 }
