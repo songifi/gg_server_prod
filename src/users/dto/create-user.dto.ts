@@ -1,5 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsEmail, IsOptional, Length } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  IsOptional,
+  Length,
+  IsBoolean,
+  IsDate,
+} from 'class-validator';
 
 export class CreateUserDto {
   @ApiProperty({
@@ -26,6 +33,30 @@ export class CreateUserDto {
   @IsString()
   @Length(6, 20)
   password: string;
+
+  @ApiPropertyOptional({
+    example: false,
+    description: 'Whether the email has been verified',
+  })
+  @IsOptional()
+  @IsBoolean()
+  isEmailVerified?: boolean;
+
+  @ApiPropertyOptional({
+    example: 'abc123xyz789',
+    description: 'Email verification token',
+  })
+  @IsOptional()
+  @IsString()
+  emailVerificationToken?: string;
+
+  @ApiPropertyOptional({
+    example: '2025-03-27T12:00:00.000Z',
+    description: 'Email verification token expiry date',
+  })
+  @IsOptional()
+  @IsDate()
+  emailVerificationTokenExpires?: Date;
 
   @ApiPropertyOptional({
     example: 'John Doe',
