@@ -99,24 +99,30 @@ export class User {
   @ApiProperty({
     example: 'https://example.com/avatar.jpg',
     description: 'Profile picture URL',
-    required: false,
   })
   @Column({ nullable: true })
   avatar: string;
 
   @ApiProperty({
-    example: 'Full-stack developer',
-    description: 'Short bio of the user',
-    required: false,
+    example: 'Full-stack developer and tech enthusiast.',
+    description: 'User bio',
   })
   @Column({ nullable: true, type: 'text' })
   bio: string;
+
+  @ApiProperty({
+    example: { emailNotifications: true, darkMode: false, language: 'en' },
+    description: 'User settings',
+  })
+  @Column({ type: 'jsonb', nullable: true })
+  settings: Record<string, any>;
 
   @BeforeInsert()
   @BeforeUpdate()
   async hashPassword() {
     if (this.password) {
-      this.password = await bcrypt.hash(this.password, 10);
+      const salt = await bcrypt.genSalt();
+      this.password = await bcrypt.hash(this.password, salt);
     }
   }
 
