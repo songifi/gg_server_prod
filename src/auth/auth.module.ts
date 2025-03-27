@@ -9,6 +9,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EmailModule } from '../email/email.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { EmailThrottleGuard } from './guards/throttle.guard';
+import { RolesGuard } from './guards/roles.guard';
 
 @Module({
   imports: [
@@ -40,11 +41,12 @@ import { EmailThrottleGuard } from './guards/throttle.guard';
   providers: [
     AuthService,
     JwtStrategy,
+    RolesGuard,
     {
       provide: 'THROTTLE_GUARD',
       useClass: EmailThrottleGuard,
     },
   ],
-  exports: [AuthService],
+  exports: [AuthService, JwtStrategy, RolesGuard],
 })
 export class AuthModule {}

@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import * as bcrypt from 'bcryptjs';
+import { UserRole } from '../enums/user-role.enum';
 
 @Entity('users')
 export class User {
@@ -87,6 +88,18 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
+  @ApiProperty({
+    enum: UserRole,
+    example: UserRole.USER,
+    description: 'User role for access control',
+  })
+  @Column({
+    type: 'enum',
+    enum: UserRole,
+    default: UserRole.USER,
+  })
+  role: UserRole;
+
   // Profile-related fields
   @ApiProperty({
     example: 'John Doe',
@@ -117,6 +130,20 @@ export class User {
   @Column({ type: 'jsonb', nullable: true })
   settings: Record<string, any>;
 
+  @ApiProperty({
+    example: 'refresh_token',
+    description: 'Refresh token',
+  })
+  @Column({ nullable: true })
+  refreshToken: string;
+
+  @ApiProperty({
+    example: '2025-03-27T12:00:00.000Z',
+    description: 'Refresh token expiry date',
+  })
+  @Column({ type: 'timestamp', nullable: true })
+  refreshTokenExpires: Date;
+
   @BeforeInsert()
   @BeforeUpdate()
   async hashPassword() {
@@ -128,5 +155,9 @@ export class User {
 
   async validatePassword(password: string): Promise<boolean> {
     return bcrypt.compare(password, this.password);
+  }
+
+  async validateRefreshToken(token: string): Promise<boolean> {
+    return this.refreshToken === token && this.refreshTokenExpires > new Date();
   }
 }

@@ -1,10 +1,11 @@
-import { Controller, Post, Body, Get, Query, BadRequestException, UseGuards, UseFilters } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query, BadRequestException, UseGuards, UseFilters, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { RefreshTokenDto, TokenResponseDto } from './dto/refresh-token.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { User } from '../users/entities/user.entity';
 import { UserResponse } from '../shared/types/user.types';
@@ -156,5 +157,21 @@ export class AuthController {
       resetPasswordDto.token,
       resetPasswordDto.newPassword,
     );
+  }
+
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Refresh access token using refresh token' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'New access and refresh tokens',
+    type: TokenResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Invalid or expired refresh token',
+  })
+  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto): Promise<TokenResponseDto> {
+    return this.authService.refreshToken(refreshTokenDto);
   }
 }

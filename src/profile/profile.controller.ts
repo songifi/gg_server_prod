@@ -2,29 +2,33 @@ import {
   Controller,
   Get,
   Patch,
+  Post,
   Body,
   UseGuards,
   UseInterceptors,
   UploadedFile,
-  Post,
-  ParseFilePipeBuilder,
-  HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags, ApiConsumes, ApiBody, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { ProfileService } from './profile.service';
-import { UpdateProfileDto } from '../users/dto/update-profile.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
+import { UserRole } from '../users/enums/user-role.enum';
+import { User } from '../users/entities/user.entity';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { User } from '../users/entities/user.entity';
+import { HttpStatus } from '@nestjs/common';
+import { ParseFilePipeBuilder } from '@nestjs/common';
 
 @ApiTags('profile')
 @Controller('profile')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
@@ -90,5 +94,11 @@ export class ProfileController {
     file: any,
   ): Promise<User> {
     return this.profileService.uploadAvatar(userId, file);
+  }
+
+  @Get('all')
+  @Roles(UserRole.ADMIN)
+  async getAllProfiles(): Promise<User[]> {
+    return this.profileService.getAllProfiles();
   }
 }
