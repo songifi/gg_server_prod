@@ -16,6 +16,8 @@ describe('MessageController', () => {
     findOne: jest.fn(),
     update: jest.fn(),
     remove: jest.fn(),
+    getMessageHistory: jest.fn(),
+    searchMessages: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -149,6 +151,81 @@ describe('MessageController', () => {
 
       expect(result).toBeUndefined();
       expect(mockMessageService.remove).toHaveBeenCalledWith(messageId);
+    });
+  });
+
+  describe('getMessageHistory', () => {
+    it('should return a history of messages between sender and receiver', async () => {
+      const senderId = 'user123';
+      const receiverId = 'user456';
+      const page = 1;
+      const limit = 10;
+      const startDate = '2025-01-01';
+      const endDate = '2025-12-31';
+
+      const messageHistory: MessageResponseDto[] = [
+        {
+          id: '550e8400-e29b-41d4-a716-446655440000',
+          content: 'Hello, how are you?',
+          senderId: senderId,
+          conversationId: 'conv456',
+          timestamp: new Date(),
+          messageType: MessageType.TEXT,
+        },
+      ];
+
+      mockMessageService.getMessageHistory.mockResolvedValue(messageHistory);
+
+      const result = await messageController.getMessageHistory(
+        senderId,
+        receiverId,
+        page,
+        limit,
+        { startDate, endDate },
+      );
+
+      expect(result).toEqual(messageHistory);
+      expect(mockMessageService.getMessageHistory).toHaveBeenCalledWith(
+        senderId,
+        receiverId,
+        page,
+        limit,
+        { startDate, endDate },
+      );
+    });
+  });
+
+  describe('searchMessages', () => {
+    it('should return search results for messages', async () => {
+      const query = 'Hello';
+      const senderId = 'user123';
+      const receiverId = 'user456';
+
+      const searchResults: MessageResponseDto[] = [
+        {
+          id: '550e8400-e29b-41d4-a716-446655440000',
+          content: 'Hello, how are you?',
+          senderId: senderId,
+          conversationId: 'conv456',
+          timestamp: new Date(),
+          messageType: MessageType.TEXT,
+        },
+      ];
+
+      mockMessageService.searchMessages.mockResolvedValue(searchResults);
+
+      const result = await messageController.searchMessages(
+        query,
+        senderId,
+        receiverId,
+      );
+
+      expect(result).toEqual(searchResults);
+      expect(mockMessageService.searchMessages).toHaveBeenCalledWith(
+        query,
+        senderId,
+        receiverId,
+      );
     });
   });
 });

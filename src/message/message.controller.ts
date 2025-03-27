@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { MessageService } from './message.service';
 import { CreateMessageDto } from './dto/create-message.dto';
@@ -44,5 +45,33 @@ export class MessageController {
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<void> {
     return this.messageService.remove(id);
+  }
+
+  @Get('/history')
+  async getMessageHistory(
+    @Query('senderId') senderId: string,
+    @Query('receiverId') receiverId: string,
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+    @Query('type') type?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.messageService.getMessageHistory(
+      senderId,
+      receiverId,
+      Number(page),
+      Number(limit),
+      { type, startDate, endDate },
+    );
+  }
+
+  @Get('/search')
+  async searchMessages(
+    @Query('query') query: string,
+    @Query('senderId') senderId: string,
+    @Query('receiverId') receiverId: string,
+  ): Promise<MessageResponseDto[]> {
+    return this.messageService.searchMessages(query, senderId, receiverId);
   }
 }
