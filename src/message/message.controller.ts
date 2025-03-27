@@ -1,41 +1,48 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Controller,
   Get,
   Post,
   Body,
-  Patch,
   Param,
+  Patch,
   Delete,
 } from '@nestjs/common';
 import { MessageService } from './message.service';
+import { CreateMessageDto } from './dto/create-message.dto';
+import { MessageResponseDto } from './dto/message-response.dto';
+import { UpdateMessageDto } from './dto/update-message.dto';
 
-@Controller('message')
+@Controller('messages')
 export class MessageController {
   constructor(private readonly messageService: MessageService) {}
 
   @Post()
-  create(@Body() createMessageDto: any) {
-    return 'Message created';
+  async create(
+    @Body() createMessageDto: CreateMessageDto,
+  ): Promise<MessageResponseDto> {
+    return this.messageService.create(createMessageDto);
   }
 
   @Get()
-  findAll() {
-    return 'All messages fetched';
+  async findAll(): Promise<MessageResponseDto[]> {
+    return this.messageService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return `Message with ID ${id} fetched`;
+  async findOne(@Param('id') id: string): Promise<MessageResponseDto> {
+    return this.messageService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateMessageDto: any) {
-    return `Message with ID ${id} updated`;
+  async update(
+    @Param('id') id: string,
+    @Body() updateMessageDto: UpdateMessageDto,
+  ): Promise<MessageResponseDto> {
+    return this.messageService.update(id, updateMessageDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return `Message with ID ${id} removed`;
+  async remove(@Param('id') id: string): Promise<void> {
+    return this.messageService.remove(id);
   }
 }

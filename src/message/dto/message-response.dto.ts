@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { MessageType } from '../enum/message-type.enum'; // Importing the MessageType enum
 
 export class MessageResponseDto {
   @ApiProperty({
@@ -27,8 +28,8 @@ export class MessageResponseDto {
 
   @ApiProperty({
     example: 'text',
-    enum: ['text', 'media', 'token-transfer'],
+    enum: MessageType, // Use the MessageType enum here
     description: 'Type of message',
   })
-  messageType: 'text' | 'media' | 'token-transfer';
+  messageType: MessageType; // Ensure the type is MessageType, not a string
 }

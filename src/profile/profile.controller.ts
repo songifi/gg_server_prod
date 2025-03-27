@@ -7,10 +7,14 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
-  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiTags, ApiConsumes, ApiBody, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiTags,
+  ApiConsumes,
+  ApiOperation,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -44,7 +48,9 @@ export class ProfileController {
 
   @Get('settings')
   @ApiOperation({ summary: 'Get user settings' })
-  async getSettings(@CurrentUser('id') userId: string): Promise<Record<string, any>> {
+  async getSettings(
+    @CurrentUser('id') userId: string,
+  ): Promise<Record<string, any>> {
     return this.profileService.getSettings(userId);
   }
 

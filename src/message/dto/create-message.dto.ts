@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsUUID, IsEnum } from 'class-validator';
+import { MessageType } from '../enum/message-type.enum';
 
 export class CreateMessageDto {
   @ApiProperty({
@@ -25,9 +26,9 @@ export class CreateMessageDto {
 
   @ApiProperty({
     example: 'text',
-    enum: ['text', 'media', 'token-transfer'],
+    enum: MessageType, // Use the MessageType enum here
     description: 'Type of message',
   })
-  @IsEnum(['text', 'media', 'token-transfer'])
-  messageType: 'text' | 'media' | 'token-transfer';
+  @IsEnum(MessageType)
+  messageType: MessageType;
 }

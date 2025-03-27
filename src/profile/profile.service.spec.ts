@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProfileService } from './profile.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
@@ -54,7 +55,10 @@ describe('ProfileService', () => {
       user.id = userId;
 
       mockUserRepository.findOne.mockResolvedValue(user);
-      mockUserRepository.save.mockResolvedValue({ ...user, ...updateProfileDto });
+      mockUserRepository.save.mockResolvedValue({
+        ...user,
+        ...updateProfileDto,
+      });
 
       const result = await service.updateProfile(userId, updateProfileDto);
 
