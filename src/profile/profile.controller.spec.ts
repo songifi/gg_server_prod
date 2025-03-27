@@ -50,7 +50,10 @@ describe('ProfileController', () => {
 
       const result = await controller.updateProfile(userId, updateProfileDto);
 
-      expect(service.updateProfile).toHaveBeenCalledWith(userId, updateProfileDto);
+      expect(service.updateProfile).toHaveBeenCalledWith(
+        userId,
+        updateProfileDto,
+      );
       expect(result).toEqual(user);
     });
   });
