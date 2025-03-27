@@ -149,4 +149,26 @@ export class MessageGateway implements OnGatewayConnection, OnGatewayDisconnect 
       .to(`conversation:${conversationId}`)
       .emit('typing', { userId, isTyping });
   }
+
+  @UseGuards(WsJwtGuard)
+  @SubscribeMessage('markAsRead')
+  async handleMarkAsRead(
+    @ConnectedSocket() client: Socket,
+    @WsUser() userId: string,
+    @MessageBody() { messageId }: { messageId: string },
+  ) {
+    try {
+      const message = await this.messageService.markAsRead(messageId, userId);
+      if (message) {
+        // Broadcast read receipt to conversation room
+        this.server
+          .to(`conversation:${message.conversationId}`)
+          .emit('messageRead', { messageId, userId, timestamp: new Date() });
+        return { success: true };
+      }
+      return { success: false, error: 'Message not found' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
 }
