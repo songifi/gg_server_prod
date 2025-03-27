@@ -105,4 +105,12 @@ export class MessageService {
       order: { timestamp: 'DESC' as any },
     });
   }
+
+  async getUserConversations(userId: string): Promise<{ id: string }[]> {
+    return await this.messageRepository.findUserConversations(userId);
+  }
+
+  async markAsRead(messageId: string, userId: string): Promise<MessageResponseDto | null> {
+    return await this.messageRepository.markMessageAsRead(messageId, userId);
+  }
 }
