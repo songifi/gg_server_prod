@@ -9,9 +9,11 @@ import { UserRepository } from './repositories/user.repository';
 import { Notification } from 'src/notification/entities/notification.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Wallet, TokenTransaction, Notification])],
+  imports: [
+    TypeOrmModule.forFeature([User, Wallet, TokenTransaction, Notification]),
+  ],
   controllers: [UsersController],
   providers: [UsersService, UserRepository],
-  exports: [UsersService],
+  exports: [UsersService, TypeOrmModule],
 })
 export class UsersModule {}
