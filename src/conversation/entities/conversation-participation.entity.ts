@@ -1,7 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
 import { Conversation } from './conversation.entity';
 import { User } from 'src/users/entities/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
+
+export enum ConversationParticipantRole {
+  ADMIN = 'admin',
+  MODERATOR = 'moderator',
+  MEMBER = 'member',
+}
 
 @Entity('conversation_participants')
 export class ConversationParticipant {
@@ -21,4 +27,16 @@ export class ConversationParticipant {
   @ManyToOne(() => User, (user) => user.conversations)
   @JoinColumn({ name: 'user_id' })
   user: User;
+
+  @ApiProperty({
+    description: 'Role of the participant in the conversation',
+    enum: ConversationParticipantRole,
+    example: ConversationParticipantRole.MEMBER,
+  })
+  @Column({
+    type: 'enum',
+    enum: ConversationParticipantRole,
+    default: ConversationParticipantRole.MEMBER,
+  })
+  role: ConversationParticipantRole;
 }
