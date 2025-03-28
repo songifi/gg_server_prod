@@ -12,6 +12,7 @@ import { ConversationModule } from './conversation/conversation.module';
 import { NotificationModule } from './notification/notification.module';
 import { TokenModule } from './token/token.module';
 import { NotificationPreferenceModule } from './notification-preference/notification-preference.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { NotificationPreferenceModule } from './notification-preference/notifica
     NotificationModule,
     TokenModule,
     NotificationPreferenceModule,
+    AnalyticsModule,
   ],
 })
 export class AppModule {}
