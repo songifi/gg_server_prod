@@ -149,7 +149,7 @@ export class WalletService {
 
   async disconnectWallet(userId: string, address: string): Promise<void> {
     const wallet = await this.walletRepository.findOne({
-      where: { address, userId },
+      where: { userId, address },
     });
 
     if (!wallet) {
@@ -163,6 +163,12 @@ export class WalletService {
     });
 
     await this.walletRepository.remove(wallet);
+  }
+
+  async findByAddress(address: string): Promise<Wallet | null> {
+    return this.walletRepository.findOne({
+      where: { address },
+    });
   }
 
   async getBalance(userId: string, address: string): Promise<string> {

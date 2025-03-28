@@ -14,12 +14,16 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { TransactionService } from '../services/transaction.service';
 import { CreateTokenTransactionDto } from '../dto/create-token-transaction.dto';
 import { UpdateTokenTransactionDto } from '../dto/update-token-transaction.dto';
+import { ListTransactionsDto } from '../dto/list-transactions.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { TokenType } from '../enum/token-type.enum';
+import { TransactionStatus } from 'starknet';
 
 @ApiTags('token-transactions')
 @ApiBearerAuth()
@@ -39,13 +43,22 @@ export class TransactionController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all token transactions' })
+  @ApiOperation({ summary: 'Get all token transactions for the current user' })
   @ApiResponse({
     status: 200,
-    description: 'Returns all token transactions',
+    description: 'Returns paginated list of token transactions',
   })
-  findAll() {
-    return this.transactionService.findAll();
+  @ApiQuery({ name: 'tokenType', enum: TokenType, required: false })
+  @ApiQuery({ name: 'status', enum: TransactionStatus, required: false })
+  @ApiQuery({ name: 'dateFrom', type: String, required: false })
+  @ApiQuery({ name: 'dateTo', type: String, required: false })
+  @ApiQuery({ name: 'page', type: Number, required: false })
+  @ApiQuery({ name: 'limit', type: Number, required: false })
+  findAll(
+    @CurrentUser('id') userId: string,
+    @Query() filters: ListTransactionsDto,
+  ) {
+    return this.transactionService.findUserTransactions(userId, filters);
   }
 
   @Get('sent')
