@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { TokenService } from './services/token.service';
 import { TransactionService } from './services/transaction.service';
 import { TokenBalanceService } from './services/token-balance.service';
+import { TokenSyncService } from './services/token-sync.service';
 import { TokenController } from './controllers/token.controller';
 import { TransactionController } from './controllers/transaction.controller';
 import { TokenBalanceController } from './controllers/token-balance.controller';
@@ -10,6 +11,7 @@ import { TokenTransaction } from './entities/token-transaction.entity';
 import { TokenBalance } from './entities/token-balance.entity';
 import { User } from '../users/entities/user.entity';
 import { WalletModule } from '../wallet/wallet.module';
+import { UsersModule } from '../users/users.module';
 import { Wallet } from '../wallet/entities/wallet.entity';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CacheModule } from '@nestjs/cache-manager';
@@ -18,6 +20,7 @@ import { CacheModule } from '@nestjs/cache-manager';
   imports: [
     TypeOrmModule.forFeature([TokenTransaction, TokenBalance, User, Wallet]),
     WalletModule,
+    UsersModule,
     ScheduleModule.forRoot(),
     CacheModule.register({
       ttl: 300, // 5 minutes
@@ -25,7 +28,12 @@ import { CacheModule } from '@nestjs/cache-manager';
     }),
   ],
   controllers: [TokenController, TransactionController, TokenBalanceController],
-  providers: [TokenService, TransactionService, TokenBalanceService],
+  providers: [
+    TokenService,
+    TransactionService,
+    TokenBalanceService,
+    TokenSyncService,
+  ],
   exports: [TokenService, TransactionService, TokenBalanceService],
 })
 export class TokenModule {}
