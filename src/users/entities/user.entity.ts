@@ -14,6 +14,7 @@ import { UserRole } from '../enums/user-role.enum';
 import { Wallet } from '../../wallet/entities/wallet.entity';
 import { ReadReceipt } from 'src/read-receipt/entities/read-receipt.entity';
 import { ConversationParticipant } from 'src/conversation/entities/conversation-participation.entity';
+import { TokenTransaction } from 'src/token-transactions/entities/token-transaction.entity';
 
 @Entity('users')
 export class User {
@@ -173,4 +174,14 @@ export class User {
 
   @OneToMany(() => ConversationParticipant, (participant) => participant.user)
   conversations: ConversationParticipant[];
+
+  @OneToMany(() => TokenTransaction, (transaction) => transaction.sender, {
+    lazy: true,
+  })
+  sentTransactions: Promise<TokenTransaction[]>;
+
+  @OneToMany(() => TokenTransaction, (transaction) => transaction.receiver, {
+    lazy: true,
+  })
+  receivedTransactions: Promise<TokenTransaction[]>;
 }

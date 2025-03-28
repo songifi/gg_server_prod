@@ -6,11 +6,17 @@ import {
   Param,
   Put,
   Delete,
-  Patch,
   UseGuards,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiParam,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { ConversationService } from './conversation.service';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { UpdateConversationDto } from './dto/update-conversation.dto';
@@ -61,7 +67,9 @@ export class ConversationController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'List user conversations with last message preview' })
+  @ApiOperation({
+    summary: 'List user conversations with last message preview',
+  })
   @ApiResponse({
     status: 200,
     description: 'Returns paginated list of conversations',
