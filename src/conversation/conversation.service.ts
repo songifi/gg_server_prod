@@ -1,12 +1,22 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ConversationParticipant, ConversationParticipantRole } from './entities/conversation-participation.entity';
+import {
+  ConversationParticipant,
+  ConversationParticipantRole,
+} from './entities/conversation-participation.entity';
 import { Conversation } from './entities/conversation.entity';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { UpdateConversationDto } from './dto/update-conversation.dto';
 import { AddParticipantDto } from './dto/add-participant.dto';
-import { ListConversationsDto, ConversationSortType } from './dto/list-conversations.dto';
+import {
+  ListConversationsDto,
+  ConversationSortType,
+} from './dto/list-conversations.dto';
 import { User } from '../users/entities/user.entity';
 
 @Injectable()
@@ -113,10 +123,7 @@ export class ConversationService {
     await this.participantRepository.remove(participant);
   }
 
-  async listConversations(
-    userId: string,
-    dto: ListConversationsDto,
-  ) {
+  async listConversations(userId: string, dto: ListConversationsDto) {
     // Validate user exists
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
@@ -135,7 +142,7 @@ export class ConversationService {
       .leftJoinAndSelect('conversation.participants', 'participants')
       .leftJoinAndSelect('participants.user', 'user')
       .leftJoinAndSelect(
-        subQuery => {
+        (subQuery) => {
           return subQuery
             .select('message.*')
             .from('messages', 'message')
