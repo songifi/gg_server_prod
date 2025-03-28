@@ -14,6 +14,7 @@ import { UserRole } from '../enums/user-role.enum';
 import { Wallet } from '../../wallet/entities/wallet.entity';
 import { ReadReceipt } from 'src/read-receipt/entities/read-receipt.entity';
 import { ConversationParticipant } from 'src/conversation/entities/conversation-participation.entity';
+import { Notification } from 'src/notification/entities/notification.entity';
 import { TokenTransaction } from '../../token/entities/token-transaction.entity';
 
 @Entity('users')
@@ -184,4 +185,7 @@ export class User {
     nullable: true,
   })
   receivedTransactions: TokenTransaction[];
+
+  @OneToMany(() => Notification, (notifications) => notifications.user)
+  notifications: Notification[];
 }

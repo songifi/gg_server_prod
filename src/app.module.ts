@@ -9,6 +9,7 @@ import { ProfileModule } from './profile/profile.module';
 import { WalletModule } from './wallet/wallet.module';
 import { ReadReceiptModule } from './read-receipt/read-receipt.module';
 import { ConversationModule } from './conversation/conversation.module';
+import { NotificationModule } from './notification/notification.module';
 import { TokenModule } from './token/token.module';
 
 @Module({
@@ -39,6 +40,7 @@ import { TokenModule } from './token/token.module';
     WalletModule,
     ReadReceiptModule,
     ConversationModule,
+    NotificationModule,
     TokenModule,
   ],
 })
