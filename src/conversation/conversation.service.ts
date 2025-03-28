@@ -1,26 +1,46 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ConversationParticipant } from './entities/conversation-participation.entity';
+import { Conversation } from './entities/conversation.entity';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { UpdateConversationDto } from './dto/update-conversation.dto';
 
 @Injectable()
 export class ConversationService {
-  create(createConversationDto: CreateConversationDto) {
-    return 'This action adds a new conversation';
+  constructor(
+    @InjectRepository(Conversation)
+    private readonly conversationRepository: Repository<Conversation>,
+    @InjectRepository(ConversationParticipant)
+    private readonly conversationParticipantRepository: Repository<ConversationParticipant>,
+  ) {}
+
+  async create(
+    createConversationDto: CreateConversationDto,
+  ): Promise<Conversation> {
+    const conversation = this.conversationRepository.create(
+      createConversationDto,
+    );
+    return this.conversationRepository.save(conversation);
   }
 
-  findAll() {
-    return `This action returns all conversation`;
+  async findOne(id: string): Promise<Conversation> {
+    return this.conversationRepository.findOne({ where: { id } });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} conversation`;
+  async update(
+    id: string,
+    updateConversationDto: UpdateConversationDto,
+  ): Promise<Conversation> {
+    await this.conversationRepository.update(id, updateConversationDto);
+    return this.findOne(id);
   }
 
-  update(id: number, updateConversationDto: UpdateConversationDto) {
-    return `This action updates a #${id} conversation`;
+  async remove(id: string): Promise<void> {
+    await this.conversationRepository.delete(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} conversation`;
+  async findAll(): Promise<Conversation[]> {
+    return this.conversationRepository.find();
   }
 }
