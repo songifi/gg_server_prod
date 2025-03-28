@@ -11,6 +11,7 @@ import { ReadReceiptModule } from './read-receipt/read-receipt.module';
 import { ConversationModule } from './conversation/conversation.module';
 import { NotificationModule } from './notification/notification.module';
 import { TokenModule } from './token/token.module';
+import { NotificationPreferenceModule } from './notification-preference/notification-preference.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { TokenModule } from './token/token.module';
     ConversationModule,
     NotificationModule,
     TokenModule,
+    NotificationPreferenceModule,
   ],
 })
 export class AppModule {}
