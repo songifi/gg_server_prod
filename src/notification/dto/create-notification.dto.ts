@@ -27,5 +27,5 @@ export class CreateNotificationDto {
 
   @IsNotEmpty()
   @ApiProperty({ description: 'User associated with the notification' })
-  userId: string; // userId for creating a new notification, rather than using the whole user object.
+  userId: string;
 }
