@@ -8,6 +8,7 @@ import { Message } from './entities/message.entity';
 import { MessageRepository } from './repository/message.repository';
 import { MessageGateway } from './message.gateway';
 import { MessageReadReceipt } from '../read-receipt/dto/message-read-receipt.entity';
+import { ModerationModule } from '../moderation/moderation.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { MessageReadReceipt } from '../read-receipt/dto/message-read-receipt.ent
       }),
       inject: [ConfigService],
     }),
+    ModerationModule,
   ],
   controllers: [MessageController],
   providers: [MessageService, MessageRepository, MessageGateway],
