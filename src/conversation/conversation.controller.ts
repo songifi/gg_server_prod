@@ -6,13 +6,20 @@ import {
   Param,
   Put,
   Delete,
+  Patch,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { ConversationService } from './conversation.service';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { UpdateConversationDto } from './dto/update-conversation.dto';
+import { AddParticipantDto } from './dto/add-participant.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ConversationPermissionGuard } from './guards/conversation-permission.guard';
 
 @ApiTags('Conversations')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('conversations')
 export class ConversationController {
   constructor(private readonly conversationService: ConversationService) {}
@@ -48,5 +55,37 @@ export class ConversationController {
   @ApiOperation({ summary: 'Get all conversations' })
   findAll() {
     return this.conversationService.findAll();
+  }
+
+  @Post(':id/participants')
+  @UseGuards(ConversationPermissionGuard)
+  @ApiOperation({ summary: 'Add a participant to a conversation' })
+  @ApiParam({ name: 'id', description: 'Conversation ID' })
+  @ApiResponse({
+    status: 201,
+    description: 'Participant added successfully',
+  })
+  async addParticipant(
+    @Param('id') id: string,
+    @Body() addParticipantDto: AddParticipantDto,
+  ) {
+    return this.conversationService.addParticipant(id, addParticipantDto);
+  }
+
+  @Delete(':id/participants/:userId')
+  @UseGuards(ConversationPermissionGuard)
+  @ApiOperation({ summary: 'Remove a participant from a conversation' })
+  @ApiParam({ name: 'id', description: 'Conversation ID' })
+  @ApiParam({ name: 'userId', description: 'User ID to remove' })
+  @ApiResponse({
+    status: 200,
+    description: 'Participant removed successfully',
+  })
+  async removeParticipant(
+    @Param('id') id: string,
+    @Param('userId') userId: string,
+  ) {
+    await this.conversationService.removeParticipant(id, userId);
+    return { message: 'Participant removed successfully' };
   }
 }
