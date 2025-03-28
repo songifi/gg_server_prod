@@ -8,14 +8,17 @@ import {
   Delete,
   Patch,
   UseGuards,
+  Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { ConversationService } from './conversation.service';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { UpdateConversationDto } from './dto/update-conversation.dto';
 import { AddParticipantDto } from './dto/add-participant.dto';
+import { ListConversationsDto } from './dto/list-conversations.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ConversationPermissionGuard } from './guards/conversation-permission.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('Conversations')
 @ApiBearerAuth()
@@ -55,6 +58,20 @@ export class ConversationController {
   @ApiOperation({ summary: 'Get all conversations' })
   findAll() {
     return this.conversationService.findAll();
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'List user conversations with last message preview' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns paginated list of conversations',
+  })
+  @ApiQuery({ type: ListConversationsDto })
+  async listConversations(
+    @CurrentUser('id') userId: string,
+    @Query() query: ListConversationsDto,
+  ) {
+    return this.conversationService.listConversations(userId, query);
   }
 
   @Post(':id/participants')

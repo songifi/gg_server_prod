@@ -6,6 +6,7 @@ import { Conversation } from './entities/conversation.entity';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { UpdateConversationDto } from './dto/update-conversation.dto';
 import { AddParticipantDto } from './dto/add-participant.dto';
+import { ListConversationsDto, ConversationSortType } from './dto/list-conversations.dto';
 import { User } from '../users/entities/user.entity';
 
 @Injectable()
@@ -110,5 +111,72 @@ export class ConversationService {
     }
 
     await this.participantRepository.remove(participant);
+  }
+
+  async listConversations(
+    userId: string,
+    dto: ListConversationsDto,
+  ) {
+    // Validate user exists
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Normalize pagination parameters
+    const page = Math.max(1, dto.page || 1);
+    const limit = Math.min(100, Math.max(1, dto.limit || 10));
+
+    // Sanitize search input
+    const search = dto.search?.trim();
+
+    const query = this.conversationRepository
+      .createQueryBuilder('conversation')
+      .leftJoinAndSelect('conversation.participants', 'participants')
+      .leftJoinAndSelect('participants.user', 'user')
+      .leftJoinAndSelect(
+        subQuery => {
+          return subQuery
+            .select('message.*')
+            .from('messages', 'message')
+            .where(
+              'message.id IN (SELECT MAX(m2.id) FROM messages m2 WHERE m2.conversation_id = message.conversation_id GROUP BY m2.conversation_id)',
+            );
+        },
+        'lastMessage',
+        'lastMessage.conversation_id = conversation.id',
+      )
+      .where('participants.user.id = :userId', { userId });
+
+    // Apply search filter if provided
+    if (search) {
+      query.andWhere(
+        '(LOWER(lastMessage.content) LIKE LOWER(:search) OR LOWER(user.name) LIKE LOWER(:search))',
+        { search: `%${search}%` },
+      );
+    }
+
+    // Apply sorting
+    if (dto.sort === ConversationSortType.UNREAD) {
+      query.orderBy('lastMessage.read', 'ASC');
+    }
+    query.addOrderBy('lastMessage.createdAt', 'DESC');
+
+    // Get total count
+    const total = await query.getCount();
+
+    // Get paginated results
+    const conversations = await query
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+
+    return {
+      data: conversations,
+      total,
+      page,
+      limit,
+      hasMore: total > page * limit,
+    };
   }
 }
