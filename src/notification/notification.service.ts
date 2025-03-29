@@ -35,7 +35,12 @@ export class NotificationsService {
     const firebaseClientEmail = this.configService.get('FIREBASE_CLIENT_EMAIL');
     const firebasePrivateKey = this.configService.get('FIREBASE_PRIVATE_KEY');
 
-    if (!admin.apps.length && firebaseProjectId && firebaseClientEmail && firebasePrivateKey) {
+    if (
+      !admin.apps.length &&
+      firebaseProjectId &&
+      firebaseClientEmail &&
+      firebasePrivateKey
+    ) {
       this.fcmApp = admin.initializeApp({
         credential: admin.credential.cert({
           projectId: firebaseProjectId,
@@ -64,7 +69,10 @@ export class NotificationsService {
     }
   }
 
-  async registerDeviceToken(userId: string, dto: RegisterDeviceTokenDto): Promise<DeviceToken> {
+  async registerDeviceToken(
+    userId: string,
+    dto: RegisterDeviceTokenDto,
+  ): Promise<DeviceToken> {
     // Deactivate existing tokens for this device
     await this.deviceTokenRepository.update(
       { token: dto.token },
@@ -81,7 +89,9 @@ export class NotificationsService {
     return this.deviceTokenRepository.save(deviceToken);
   }
 
-  async create(createNotificationDto: CreateNotificationDto): Promise<Notification> {
+  async create(
+    createNotificationDto: CreateNotificationDto,
+  ): Promise<Notification> {
     const user = await this.userRepository.findOne({
       where: { id: createNotificationDto.userId },
     });
@@ -119,15 +129,23 @@ export class NotificationsService {
       try {
         if (device.platform === DevicePlatform.IOS) {
           await this.sendApnsNotification(device.token, title, body, data);
-        } else if (device.platform === DevicePlatform.ANDROID || device.platform === DevicePlatform.WEB) {
+        } else if (
+          device.platform === DevicePlatform.ANDROID ||
+          device.platform === DevicePlatform.WEB
+        ) {
           await this.sendFcmNotification(device.token, title, body, data);
         }
       } catch (error) {
         if (this.isInvalidTokenError(error)) {
-          await this.deviceTokenRepository.update(device.id, { isActive: false });
+          await this.deviceTokenRepository.update(device.id, {
+            isActive: false,
+          });
         }
         // Log error but continue with other devices
-        console.error(`Failed to send notification to device ${device.id}:`, error);
+        console.error(
+          `Failed to send notification to device ${device.id}:`,
+          error,
+        );
       }
     }
   }
@@ -194,7 +212,10 @@ export class NotificationsService {
     return notification;
   }
 
-  async update(id: string, updateNotificationDto: UpdateNotificationDto): Promise<Notification> {
+  async update(
+    id: string,
+    updateNotificationDto: UpdateNotificationDto,
+  ): Promise<Notification> {
     const notification = await this.findOne(id);
     return this.notificationRepository.save({
       ...notification,

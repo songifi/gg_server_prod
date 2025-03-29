@@ -17,6 +17,7 @@ import { ModerationModule } from './moderation/moderation.module';
 import { PresenceModule } from './presence/presence.module';
 import { WebhookModule } from './webhook/webhook.module';
 import { BullModule } from '@nestjs/bull';
+import { MediaModule } from './media/media.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { BullModule } from '@nestjs/bull';
         username: configService.get('DATABASE_USER'),
         password: configService.get('DATABASE_PASSWORD'),
         database: configService.get('DATABASE_NAME'),
+        bucketName: configService.get('AWS_S3_BUCKET_NAME'),
         autoLoadEntities: true,
         synchronize: configService.get('NODE_ENV') !== 'production',
       }),
@@ -63,6 +65,7 @@ import { BullModule } from '@nestjs/bull';
     ModerationModule,
     PresenceModule,
     WebhookModule,
+    MediaModule,
   ],
 })
 export class AppModule {}
