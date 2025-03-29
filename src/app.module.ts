@@ -15,6 +15,7 @@ import { NotificationPreferenceModule } from './notification-preference/notifica
 import { AnalyticsModule } from './analytics/analytics.module';
 import { ModerationModule } from './moderation/moderation.module';
 import { PresenceModule } from './presence/presence.module';
+import { MediaModule } from './media/media.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { PresenceModule } from './presence/presence.module';
         username: configService.get('DATABASE_USER'),
         password: configService.get('DATABASE_PASSWORD'),
         database: configService.get('DATABASE_NAME'),
+        bucketName: configService.get('AWS_S3_BUCKET_NAME'),
         autoLoadEntities: true,
         synchronize: configService.get('NODE_ENV') !== 'production',
       }),
@@ -50,6 +52,7 @@ import { PresenceModule } from './presence/presence.module';
     AnalyticsModule,
     ModerationModule,
     PresenceModule,
+    MediaModule,
   ],
 })
 export class AppModule {}
