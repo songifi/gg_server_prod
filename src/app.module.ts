@@ -9,7 +9,7 @@ import { ProfileModule } from './profile/profile.module';
 import { WalletModule } from './wallet/wallet.module';
 import { ReadReceiptModule } from './read-receipt/read-receipt.module';
 import { ConversationModule } from './conversation/conversation.module';
-import { NotificationModule } from './notification/notification.module';
+import { NotificationsModule } from './notification/notification.module';
 import { TokenModule } from './token/token.module';
 import { NotificationPreferenceModule } from './notification-preference/notification-preference.module';
 import { AnalyticsModule } from './analytics/analytics.module';
@@ -56,7 +56,7 @@ import { BullModule } from '@nestjs/bull';
     WalletModule,
     ReadReceiptModule,
     ConversationModule,
-    NotificationModule,
+    NotificationsModule,
     TokenModule,
     NotificationPreferenceModule,
     AnalyticsModule,
