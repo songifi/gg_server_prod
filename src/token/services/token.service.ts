@@ -1,19 +1,18 @@
-import {
-  Injectable,
-  BadRequestException,
-  NotFoundException,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { RpcProvider, Contract, TransactionStatus, Abi } from 'starknet';
-import { ConfigService } from '@nestjs/config';
 import { TokenTransaction } from '../entities/token-transaction.entity';
 import { User } from '../../users/entities/user.entity';
-import { TransferTokenDto } from '../dto/transfer-token.dto';
-import { TokenType } from '../enum/token-type.enum';
-import { WalletService } from '../../wallet/wallet.service';
 import { Wallet } from '../../wallet/entities/wallet.entity';
+import { ConfigService } from '@nestjs/config';
+import { WalletService } from '../../wallet/wallet.service';
+import { TokenType } from '../enum/token-type.enum';
+import { TransactionStatus } from '../enum/transaction-status.enum';
+import { TransactionErrorCode, RecoveryAction } from '../enum/transaction-error.enum';
+import { RpcProvider, Contract, Abi } from 'starknet';
+import { TransferTokenDto } from '../dto/transfer-token.dto';
+import { WebhookService } from '../../webhook/webhook.service';
+import { WebhookEvent } from '../../webhook/enum/webhook-event.enum';
 
 @Injectable()
 export class TokenService {
@@ -28,6 +27,7 @@ export class TokenService {
     private readonly walletRepository: Repository<Wallet>,
     private readonly configService: ConfigService,
     private readonly walletService: WalletService,
+    private readonly webhookService: WebhookService,
   ) {
     // Initialize Starknet provider
     this.provider = new RpcProvider({
@@ -66,39 +66,73 @@ export class TokenService {
 
     try {
       // Create transaction record
-      const transaction = await this.tokenTransactionRepository.save({
-        sender: Promise.resolve(sender),
-        receiver: Promise.resolve(receiver),
+      const transaction = this.tokenTransactionRepository.create({
+        senderId: sender.id,
+        receiverId: receiver.id,
         tokenType: dto.tokenType,
         tokenId: dto.tokenId,
-        amount: dto.amount,
-        status: TransactionStatus.RECEIVED,
+        amount: dto.amount?.toString(),
+        status: TransactionStatus.PENDING,
+        gasFee: '0',
+      });
+
+      await this.tokenTransactionRepository.save(transaction);
+      await this.webhookService.dispatchEvent(WebhookEvent.TRANSACTION_CREATED, {
+        transactionId: transaction.id,
+        status: transaction.status,
       });
 
       // Execute transfer based on token type
       let txHash: string;
-      if (dto.tokenType === TokenType.FUNGIBLE) {
-        txHash = await this.transferFungibleToken(
-          senderWallet.address,
-          receiverWallet.address,
-          dto.amount,
-        );
-      } else {
-        txHash = await this.transferNFT(
-          senderWallet.address,
-          receiverWallet.address,
-          dto.tokenId,
+      try {
+        if (dto.tokenType === TokenType.FUNGIBLE) {
+          txHash = await this.transferFungibleToken(
+            senderWallet.address,
+            receiverWallet.address,
+            dto.amount,
+          );
+        } else {
+          txHash = await this.transferNFT(
+            senderWallet.address,
+            receiverWallet.address,
+            dto.tokenId,
+          );
+        }
+
+        // Update transaction with hash
+        transaction.txHash = txHash;
+        transaction.status = TransactionStatus.CONFIRMED;
+        await this.tokenTransactionRepository.save(transaction);
+        await this.webhookService.dispatchEvent(WebhookEvent.TRANSACTION_CONFIRMED, {
+          transactionId: transaction.id,
+          txHash,
+          status: transaction.status,
+        });
+
+        return {
+          txHash,
+          status: TransactionStatus.CONFIRMED,
+        };
+      } catch (error) {
+        transaction.status = TransactionStatus.FAILED;
+        transaction.errorCode = TransactionErrorCode.CONTRACT_ERROR;
+        transaction.errorMessage = error.message;
+        transaction.recoveryOptions = [RecoveryAction.RETRY, RecoveryAction.INCREASE_FEE];
+        await this.tokenTransactionRepository.save(transaction);
+        await this.webhookService.dispatchEvent(WebhookEvent.TRANSACTION_FAILED, {
+          transactionId: transaction.id,
+          error: {
+            code: transaction.errorCode,
+            message: transaction.errorMessage,
+          },
+          status: transaction.status,
+        });
+
+        throw new InternalServerErrorException(
+          'Failed to execute token transfer',
+          error.message,
         );
       }
-
-      // Update transaction with hash
-      transaction.txHash = txHash;
-      await this.tokenTransactionRepository.save(transaction);
-
-      return {
-        txHash,
-        status: TransactionStatus.RECEIVED,
-      };
     } catch (error) {
       throw new InternalServerErrorException(
         `Failed to transfer token: ${error.message}`,
