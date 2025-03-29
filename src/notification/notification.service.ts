@@ -13,11 +13,13 @@ import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import * as admin from 'firebase-admin';
 import * as apn from 'apn';
+import * as path from 'path';
 
 @Injectable()
 export class NotificationsService {
-  private fcmApp: admin.app.App;
-  private apnProvider: apn.Provider;
+  private fcmApp: admin.app.App | null = null;
+  private apnProvider: apn.Provider | null = null;
+  private isDevelopment: boolean;
 
   constructor(
     @InjectRepository(Notification)
@@ -30,42 +32,37 @@ export class NotificationsService {
     @InjectQueue('notifications')
     private readonly notificationsQueue: Queue,
   ) {
-    // Initialize Firebase Admin SDK
-    const firebaseProjectId = this.configService.get('FIREBASE_PROJECT_ID');
-    const firebaseClientEmail = this.configService.get('FIREBASE_CLIENT_EMAIL');
-    const firebasePrivateKey = this.configService.get('FIREBASE_PRIVATE_KEY');
+    this.isDevelopment = this.configService.get('NODE_ENV') !== 'production';
 
-    if (
-      !admin.apps.length &&
-      firebaseProjectId &&
-      firebaseClientEmail &&
-      firebasePrivateKey
-    ) {
-      this.fcmApp = admin.initializeApp({
-        credential: admin.credential.cert({
-          projectId: firebaseProjectId,
-          clientEmail: firebaseClientEmail,
-          privateKey: firebasePrivateKey.replace(/\\n/g, '\n'),
-        }),
-      });
+    // Only try to initialize Firebase in production
+    if (!this.isDevelopment && !admin.apps.length) {
+      try {
+        const serviceAccountPath = path.join(process.cwd(), 'config', 'credentials', 'firebase-service-account.json');
+        this.fcmApp = admin.initializeApp({
+          credential: admin.credential.cert(serviceAccountPath),
+        });
+      } catch (error) {
+        console.warn('Firebase initialization skipped in development mode');
+      }
     } else if (admin.apps.length) {
-      this.fcmApp = admin.app();
+      this.fcmApp = admin.apps[0];
     }
 
-    // Initialize APN Provider if credentials are available
-    const apnsKey = this.configService.get('APNS_KEY');
-    const apnsKeyId = this.configService.get('APNS_KEY_ID');
-    const apnsTeamId = this.configService.get('APNS_TEAM_ID');
-
-    if (apnsKey && apnsKeyId && apnsTeamId) {
-      this.apnProvider = new apn.Provider({
-        token: {
-          key: apnsKey,
-          keyId: apnsKeyId,
-          teamId: apnsTeamId,
-        },
-        production: this.configService.get('NODE_ENV') === 'production',
-      });
+    // Only try to initialize APN in production
+    if (!this.isDevelopment) {
+      try {
+        const apnKeyPath = path.join(process.cwd(), 'config', 'credentials', 'apns-key.p8');
+        this.apnProvider = new apn.Provider({
+          token: {
+            key: apnKeyPath,
+            keyId: this.configService.get('APNS_KEY_ID'),
+            teamId: this.configService.get('APNS_TEAM_ID'),
+          },
+          production: true // Use development: false for sandbox
+        });
+      } catch (error) {
+        console.warn('APN initialization skipped due to missing credentials');
+      }
     }
   }
 
@@ -156,6 +153,16 @@ export class NotificationsService {
     body: string,
     data?: Record<string, string>,
   ): Promise<void> {
+    if (!this.fcmApp) {
+      console.log('Development Mode: FCM notification would have been sent:', {
+        token,
+        title,
+        body,
+        data,
+      });
+      return;
+    }
+
     await this.fcmApp.messaging().send({
       token,
       notification: {
@@ -175,6 +182,16 @@ export class NotificationsService {
     body: string,
     data?: Record<string, string>,
   ): Promise<void> {
+    if (!this.apnProvider) {
+      console.log('APN notification would have been sent:', {
+        token,
+        title,
+        body,
+        data,
+      });
+      return;
+    }
+
     const notification = new apn.Notification({
       alert: {
         title,
