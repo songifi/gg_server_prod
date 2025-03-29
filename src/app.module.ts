@@ -12,6 +12,7 @@ import { ConversationModule } from './conversation/conversation.module';
 import { NotificationModule } from './notification/notification.module';
 import { TokenModule } from './token/token.module';
 import { NotificationPreferenceModule } from './notification-preference/notification-preference.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 import { ModerationModule } from './moderation/moderation.module';
 
 @Module({
@@ -45,6 +46,7 @@ import { ModerationModule } from './moderation/moderation.module';
     NotificationModule,
     TokenModule,
     NotificationPreferenceModule,
+    AnalyticsModule,
     ModerationModule,
   ],
 })
