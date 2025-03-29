@@ -12,6 +12,7 @@ import { CircuitBreakerService } from './circuit-breaker.service';
 import { CacheModule as NestCacheModule } from '@nestjs/cache-manager';
 import { Redis } from 'ioredis';
 import { TerminusModule } from '@nestjs/terminus';
+import redisStore from 'cache-manager-ioredis'; // Correct import
 
 @Global()
 @Module({
@@ -19,7 +20,7 @@ import { TerminusModule } from '@nestjs/terminus';
     NestCacheModule.registerAsync({
       isGlobal: true,
       useFactory: async () => ({
-        store: await redisStore({
+        store: redisStore({
           socket: {
             host: process.env.REDIS_HOST || 'localhost',
             port: parseInt(process.env.REDIS_PORT || '6379'),
