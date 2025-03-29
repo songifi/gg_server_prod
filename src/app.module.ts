@@ -19,6 +19,7 @@ import { PresenceModule } from './presence/presence.module';
 import { WebhookModule } from './webhook/webhook.module';
 import { BullModule } from '@nestjs/bull';
 import { MediaModule } from './media/media.module';
+import { DataSyncModule } from './data-sync/data-sync.module';
 
 @Module({
   imports: [
@@ -77,6 +78,7 @@ import { MediaModule } from './media/media.module';
     PresenceModule,
     WebhookModule,
     MediaModule,
+    DataSyncModule,
   ],
 })
 export class AppModule {}
