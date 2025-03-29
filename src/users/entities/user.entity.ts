@@ -42,7 +42,7 @@ export class User {
     description: 'User password (hashed)',
     writeOnly: true,
   })
-  @Column()
+  @Column({ select: false })
   password: string;
 
   @ApiProperty({
@@ -105,6 +105,14 @@ export class User {
     default: UserRole.USER,
   })
   role: UserRole;
+
+  @ApiProperty({
+    example: 50,
+    description: 'User reputation score (0-100)',
+    default: 50,
+  })
+  @Column({ type: 'int', default: 50 })
+  reputationScore: number;
 
   // Profile-related fields
   @ApiProperty({

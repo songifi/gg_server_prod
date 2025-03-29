@@ -5,24 +5,45 @@ import { UpdateMessageDto } from './dto/update-message.dto';
 import { MessageResponseDto } from './dto/message-response.dto';
 import { MessageRepository } from './repository/message.repository';
 import { Like } from 'typeorm';
+import { ModerationService } from '../moderation/services/moderation.service';
+import { ModerationReason } from '../moderation/entities/moderation-queue.entity';
 
 @Injectable()
 export class MessageService {
   constructor(
     @InjectRepository(MessageRepository)
     private readonly messageRepository: MessageRepository,
+    private readonly moderationService: ModerationService,
   ) {}
 
   async create(
     createMessageDto: CreateMessageDto,
   ): Promise<MessageResponseDto> {
     const { content, senderId, conversationId, messageType } = createMessageDto;
+    
+    // Analyze content before saving
+    const { shouldFlag, toxicityScore } = await this.moderationService.analyzeContent(
+      content,
+      senderId,
+    );
+
+    // Create message
     const message = await this.messageRepository.createMessage(
       content,
       senderId,
       conversationId,
       messageType,
     );
+
+    // Queue for moderation if needed
+    if (shouldFlag) {
+      await this.moderationService.queueForModeration(
+        message,
+        ModerationReason.TOXIC,
+        toxicityScore,
+      );
+    }
+
     return message;
   }
 
