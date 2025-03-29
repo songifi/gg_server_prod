@@ -5,6 +5,7 @@ import { TokenTransaction } from '../entities/token-transaction.entity';
 import { CreateTokenTransactionDto } from '../dto/create-token-transaction.dto';
 import { UpdateTokenTransactionDto } from '../dto/update-token-transaction.dto';
 import { ListTransactionsDto } from '../dto/list-transactions.dto';
+import { TransactionStatus } from '../enum/transaction-status.enum'; // Assuming TransactionStatus is defined in transaction-status.enum
 
 @Injectable()
 export class TransactionService {
@@ -14,7 +15,12 @@ export class TransactionService {
   ) {}
 
   async create(createTokenTransactionDto: CreateTokenTransactionDto) {
-    const transaction = this.tokenTransactionRepository.create(createTokenTransactionDto);
+    const transaction = this.tokenTransactionRepository.create({
+      ...createTokenTransactionDto,
+      amount: createTokenTransactionDto.amount?.toString(),
+      gasFee: '0', // Default gas fee
+      status: TransactionStatus.PENDING,
+    });
     return this.tokenTransactionRepository.save(transaction);
   }
 
