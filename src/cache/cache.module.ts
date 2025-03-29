@@ -11,6 +11,7 @@ import { CdnCacheInterceptor } from './interceptors/cdn-cache.interceptor';
 import { CircuitBreakerService } from './circuit-breaker.service';
 import { CacheModule as NestCacheModule } from '@nestjs/cache-manager';
 import { Redis } from 'ioredis';
+import { TerminusModule } from '@nestjs/terminus';
 
 @Global()
 @Module({
