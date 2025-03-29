@@ -1,13 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { ConfigService } from '@nestjs/config';
-import { RpcProvider, Contract, GetTransactionReceiptResponse, TransactionStatus } from 'starknet';
 import { TokenTransaction } from '../entities/token-transaction.entity';
+import { User } from '../../users/entities/user.entity';
+import { TokenType } from '../enum/token-type.enum';
+import { TransactionStatus } from '../enum/transaction-status.enum';
+import { ConfigService } from '@nestjs/config';
+import { RpcProvider } from 'starknet';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { Contract, GetTransactionReceiptResponse } from 'starknet';
 import { WalletService } from '../../wallet/wallet.service';
 import { UsersService } from '../../users/users.service';
-import { TokenType } from '../enum/token-type.enum';
 
 interface TransferEvent {
   data: string[];
@@ -124,17 +127,15 @@ export class TokenSyncService {
           where: { txHash: transaction_hash },
         });
 
-        // Create transaction entity
+        // Create transaction record
         const transaction = this.tokenTransactionRepository.create({
-          sender: { id: sender.id } as any,
-          receiver: { id: receiver.id } as any,
-          tokenType: token_id ? TokenType.NFT : TokenType.FUNGIBLE,
-          tokenId: token_id?.toString(),
-          amount: value ? parseFloat(value.toString()) : null,
+          senderId: sender.id,
+          receiverId: receiver.id,
+          tokenType: TokenType.FUNGIBLE,
+          amount: value.toString(),
           txHash: transaction_hash,
-          status: (receipt as any).execution_status === 'SUCCEEDED' && 
-                 (receipt as any).finality_status === 'ACCEPTED_ON_L2' ? 
-                 TransactionStatus.ACCEPTED_ON_L2 : TransactionStatus.REJECTED,
+          status: TransactionStatus.CONFIRMED,
+          gasFee: '0', // This should be updated with actual gas fee
         });
 
         if (existingTransaction) {

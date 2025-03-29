@@ -9,12 +9,14 @@ import { ProfileModule } from './profile/profile.module';
 import { WalletModule } from './wallet/wallet.module';
 import { ReadReceiptModule } from './read-receipt/read-receipt.module';
 import { ConversationModule } from './conversation/conversation.module';
-import { NotificationModule } from './notification/notification.module';
+import { NotificationsModule } from './notification/notification.module';
 import { TokenModule } from './token/token.module';
 import { NotificationPreferenceModule } from './notification-preference/notification-preference.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { ModerationModule } from './moderation/moderation.module';
 import { PresenceModule } from './presence/presence.module';
+import { WebhookModule } from './webhook/webhook.module';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: [
@@ -36,6 +38,16 @@ import { PresenceModule } from './presence/presence.module';
         synchronize: configService.get('NODE_ENV') !== 'production',
       }),
     }),
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        redis: {
+          host: configService.get('REDIS_HOST', 'localhost'),
+          port: +configService.get('REDIS_PORT', 6379),
+        },
+      }),
+    }),
     UsersModule,
     MessageModule,
     AuthModule,
@@ -44,12 +56,13 @@ import { PresenceModule } from './presence/presence.module';
     WalletModule,
     ReadReceiptModule,
     ConversationModule,
-    NotificationModule,
+    NotificationsModule,
     TokenModule,
     NotificationPreferenceModule,
     AnalyticsModule,
     ModerationModule,
     PresenceModule,
+    WebhookModule,
   ],
 })
 export class AppModule {}
