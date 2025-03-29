@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { CacheModule } from '@nestjs/cache-manager';
 import { UsersModule } from './users/users.module';
 import { MessageModule } from './message/message.module';
 import { AuthModule } from './auth/auth.module';
@@ -42,13 +43,23 @@ import { MediaModule } from './media/media.module';
     }),
     BullModule.forRootAsync({
       imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
+      useFactory: async (configService: ConfigService) => ({
         redis: {
-          host: configService.get('REDIS_HOST', 'localhost'),
-          port: +configService.get('REDIS_PORT', 6379),
+          host: configService.get('REDIS_HOST'),
+          port: configService.get('REDIS_PORT'),
         },
       }),
+      inject: [ConfigService],
+    }),
+    CacheModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        store: 'redis',
+        host: configService.get('REDIS_HOST'),
+        port: configService.get('REDIS_PORT'),
+        ttl: configService.get('SEARCH_SUGGESTION_CACHE_TTL'),
+      }),
+      inject: [ConfigService],
     }),
     UsersModule,
     MessageModule,
